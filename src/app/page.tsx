@@ -1,9 +1,13 @@
-import Image from 'next/image';
+import Nav from './nav';
+import SecretView from './secret';
 
 export default function Home() {
   return (
-    <main className='flex min-h-screen flex-col items-center justify-between p-24'>
-      <div></div>
-    </main>
+    <div className='h-screen flex flex-col'>
+      <Nav />
+      <div className='flex flex-1 items-center justify-center'>
+        <SecretView />
+      </div>
+    </div>
   );
 }

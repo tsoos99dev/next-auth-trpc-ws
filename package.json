@@ -6,22 +6,32 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "dev:wss": "npx tsx watch --tsconfig tsconfig.server.json src/server/ws/server.ts"
   },
   "dependencies": {
+    "@tanstack/react-query": "^4.36.1",
+    "@trpc/client": "^10.43.0",
+    "@trpc/next": "^10.43.0",
+    "@trpc/react-query": "^10.43.0",
+    "@trpc/server": "^10.43.0",
+    "next": "14.0.0",
+    "next-auth": "^4.24.4",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.0.0"
+    "ws": "^8.14.2",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/ws": "^8.5.8",
     "autoprefixer": "^10",
+    "eslint": "^8",
+    "eslint-config-next": "14.0.0",
     "postcss": "^8",
     "tailwindcss": "^3",
-    "eslint": "^8",
-    "eslint-config-next": "14.0.0"
+    "typescript": "^5"
   }
 }
