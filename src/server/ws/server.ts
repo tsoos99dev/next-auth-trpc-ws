@@ -1,67 +1,49 @@
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { appRouter } from '@/server/routers/app';
 import { applyWSSHandler } from '@trpc/server/adapters/ws';
-import http from 'http';
-import next from 'next';
-import { parse } from 'url';
+import { getServerSession } from 'next-auth';
+import { getSession } from 'next-auth/react';
 import ws from 'ws';
 
 const dev = process.env.NODE_ENV !== 'production';
-const app = next({ dev });
-const handle = app.getRequestHandler();
+const port = 3001;
 
-const PORT = 3001;
+const wss = new ws.Server({ port });
+const handler = applyWSSHandler({
+  wss,
+  router: appRouter,
+  createContext: async ({ req, res }) => {
+    let session = null;
 
-void app.prepare().then(() => {
-  const server = http.createServer((req, res) => {
-    const proto = req.headers['x-forwarded-proto'];
-    if (proto && proto === 'http') {
-      // redirect to ssl
-      res.writeHead(303, {
-        location: `https://` + req.headers.host + (req.headers.url ?? ''),
-      });
-      res.end();
-      return;
+    // How would I get the session here?
+
+    try {
+      session = await getSession({ req });
+      console.log(session);
+    } catch (e) {
+      console.log(e);
     }
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const parsedUrl = parse(req.url!, true);
-    void handle(req, res, parsedUrl);
+
+    return { req, res, session };
+  },
+});
+
+wss.on('connection', (ws) => {
+  console.log(`➕➕ Connection (${wss.clients.size})`);
+  ws.once('close', () => {
+    console.log(`➖➖ Connection (${wss.clients.size})`);
   });
+});
 
-  const wss = new ws.Server({ server });
-  const handler = applyWSSHandler({
-    wss,
-    router: appRouter,
-    createContext: async ({ req, res }) => {
-      let session = null;
+wss.on('error', (error) => {
+  console.log(error);
+});
 
-      // How would I get the session here?
+console.log('✅ WebSocket Server listening on ws://localhost:3001');
 
-      return { req, res, session: null };
-    },
-  });
-
-  wss.on('connection', (ws) => {
-    console.log(`➕➕ Connection (${wss.clients.size})`);
-    ws.once('close', () => {
-      console.log(`➖➖ Connection (${wss.clients.size})`);
-    });
-  });
-
-  wss.on('error', (error) => {
-    console.log(error);
-  });
-
-  process.on('SIGTERM', () => {
-    console.log('SIGTERM');
-    // handler.broadcastReconnectNotification();
-    wss.close();
-    process.exit(0);
-  });
-  server.listen(PORT);
-
-  console.log(
-    `> Server listening at http://localhost:${PORT} as ${
-      dev ? 'development' : process.env.NODE_ENV
-    }`
-  );
+process.on('SIGTERM', () => {
+  console.log('SIGTERM');
+  handler.broadcastReconnectNotification();
+  wss.close();
+  process.exit(0);
 });
